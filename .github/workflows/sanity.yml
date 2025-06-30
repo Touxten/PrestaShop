@@ -39,14 +39,14 @@ jobs:
           - php: 8.4
             browser: firefox
             db: mysql
-          ## @todo : https://github.com/PrestaShop/PrestaShop/issues/37680
-          # - php: 8.4
-          #   browser: webkit
-          #   db: mysql
+            ## @todo : https://github.com/PrestaShop/PrestaShop/issues/37680
+            # - php: 8.4
+            #   browser: webkit
+            #   db: mysql
 
-          ## Check all DB supported
-          # MySQL is checked in sanity
-          # MariaDB is check in nightly
+            ## Check all DB supported
+            # MySQL is checked in sanity
+            # MariaDB is check in nightly
       fail-fast: false
 
     steps:
