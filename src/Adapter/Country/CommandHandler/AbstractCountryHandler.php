@@ -30,12 +30,12 @@ namespace PrestaShop\PrestaShop\Adapter\Country\CommandHandler;
 
 use Configuration;
 use Context;
-
 use Country;
 use PrestaShop\PrestaShop\Core\Domain\Country\Command\DeleteCountryCommand;
 use PrestaShop\PrestaShop\Adapter\Domain\AbstractObjectModelHandler;
 use PrestaShop\PrestaShop\Core\Domain\Country\Command\ToggleCountryStatusCommandInterface;
 use PrestaShop\PrestaShop\Core\Domain\Country\Exception\DeleteCountryException;
+use PrestaShop\PrestaShop\Core\Domain\Country\Exception\CountryNotFoundException;
 use PrestaShop\PrestaShop\Core\Domain\Country\ValueObject\CountryId;
 
 /**
@@ -63,7 +63,7 @@ abstract class AbstractCountryHandler extends AbstractObjectModelHandler
         $country = new Country($countryId->getValue());
 
         if ($countryId->getValue() !== $country->id) {
-            throw new DeleteCountryException($countryId, sprintf('Country with id "%s" was not found', $countryId->getValue()));
+            throw new CountryNotFoundException($countryId, sprintf('Country with id "%s" was not found', $countryId->getValue()));
         }
 
         return $country;

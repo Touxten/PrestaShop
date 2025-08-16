@@ -26,9 +26,37 @@
 
 namespace PrestaShop\PrestaShop\Core\Domain\Country\Exception;
 
+use Exception;
+use PrestaShop\PrestaShop\Core\Domain\Country\ValueObject\CountryId;
+
 /**
- * Is thrown on failure to find existing country
+ * Exception is thrown when country is not found
  */
 class CountryNotFoundException extends CountryException
 {
+    /**
+     * @var CountryId
+     */
+    private $countryId;
+
+    /**
+     * @param CountryId $countryId
+     * @param string $message
+     * @param int $code
+     * @param Exception|null $previous
+     */
+    public function __construct(CountryId $countryId, $message = '', $code = 0, $previous = null)
+    {
+        $this->countryId = $countryId;
+
+        parent::__construct($message, $code, $previous);
+    }
+
+    /**
+     * @return CountryId
+     */
+    public function getCountryId()
+    {
+        return $this->countryId;
+    }
 }
