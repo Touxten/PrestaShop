@@ -669,11 +669,13 @@ class CartControllerCore extends FrontController
             return true;
         }
 
-        if ($product['active']) {
+        $productName = !empty($product['attributes_small']) ? $product['name'] . ' ' . $product['attributes_small'] : $product['name'];
+
+        if ($product['active'] && $product['quantity_available'] > 0) {
             return $this->trans(
                 'You can only buy %quantity% "%product%". Please adjust the quantity in your cart to continue.',
                 [
-                    '%product%' => $product['name'],
+                    '%product%' => $productName,
                     '%quantity%' => $product['quantity_available'],
                 ],
                 'Shop.Notifications.Error'
@@ -682,7 +684,7 @@ class CartControllerCore extends FrontController
 
         return $this->trans(
             'This product (%product%) is no longer available.',
-            ['%product%' => $product['name']],
+            ['%product%' => $productName],
             'Shop.Notifications.Error'
         );
     }
