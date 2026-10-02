@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace Tests\Integration\PrestaShopBundle\Controller\Admin\Improve\Design;
 
 use Cache;
+use DOMElement;
 use Hook;
 use Module;
 use PrestaShop\PrestaShop\Core\Module\ModuleManager;
+use PrestaShop\PrestaShop\Core\Module\ModuleRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -57,6 +59,51 @@ class PositionsControllerTest extends WebTestCase
         $this->moduleId = Module::getModuleIdByName('ps_emailsubscription');
         $this->hookId = Hook::getIdByName('displayFooterBefore');
         $this->router = self::$kernel->getContainer()->get('router');
+    }
+
+    /**
+     * @dataProvider getModuleLogoCases
+     */
+    public function testModuleLogo(?string $logoFilename, string $expectedPath): void
+    {
+        $moduleDirectory = _PS_MODULE_DIR_ . 'ps_emailsubscription/';
+        $originalLogo = file_get_contents($moduleDirectory . 'logo.png');
+        $moduleRepository = self::$kernel->getContainer()->get(ModuleRepository::class);
+
+        try {
+            unlink($moduleDirectory . 'logo.png');
+            if ($logoFilename !== null) {
+                file_put_contents($moduleDirectory . $logoFilename, $originalLogo);
+            }
+            $moduleRepository->clearCache();
+
+            $crawler = $this->client->request(
+                'GET',
+                $this->router->generate('admin_modules_positions'),
+                ['show_modules' => $this->moduleId]
+            );
+
+            self::assertResponseIsSuccessful();
+            $logos = $crawler->filter(sprintf('.module-position-%d .module-column-icon img', $this->moduleId));
+            self::assertGreaterThan(0, $logos->count());
+            foreach ($logos as $logo) {
+                self::assertInstanceOf(DOMElement::class, $logo);
+                self::assertSame(__PS_BASE_URI__ . $expectedPath, parse_url($logo->getAttribute('src'), PHP_URL_PATH));
+            }
+        } finally {
+            if ($logoFilename !== null && $logoFilename !== 'logo.png') {
+                unlink($moduleDirectory . $logoFilename);
+            }
+            file_put_contents($moduleDirectory . 'logo.png', $originalLogo);
+            $moduleRepository->clearCache();
+        }
+    }
+
+    public static function getModuleLogoCases(): iterable
+    {
+        yield 'PNG logo' => ['logo.png', 'modules/ps_emailsubscription/logo.png'];
+        yield 'GIF logo' => ['logo.gif', 'modules/ps_emailsubscription/logo.gif'];
+        yield 'missing logo' => [null, 'img/module/default.png'];
     }
 
     public function testUnhooksListAction(): void

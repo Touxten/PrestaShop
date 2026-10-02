@@ -27,6 +27,7 @@ use PrestaShop\PrestaShop\Core\Domain\Hook\Query\GetHookStatus;
 use PrestaShop\PrestaShop\Core\Domain\Hook\Query\GetPossibleHooksForModule;
 use PrestaShop\PrestaShop\Core\Domain\Hook\QueryResult\HookStatus;
 use PrestaShop\PrestaShop\Core\FeatureFlag\FeatureFlagSettings;
+use PrestaShop\PrestaShop\Core\Module\ModuleRepository;
 use PrestaShop\PrestaShop\Core\Shop\ShopContextInterface;
 use PrestaShopBundle\Controller\Admin\PrestaShopAdminController;
 use PrestaShopBundle\Form\Admin\Improve\Design\HookModuleType;
@@ -60,7 +61,8 @@ class PositionsController extends PrestaShopAdminController
         Module $moduleAdapter,
         #[Autowire(service: 'prestashop.adapter.legacy.hook')]
         HookInformationProvider $hookProvider,
-        LegacyContext $legacyContextService
+        LegacyContext $legacyContextService,
+        ModuleRepository $moduleRepository
     ): Response {
         $isSingleShopContext = $this->getShopContext()->getShopConstraint()->isSingleShopContext();
         if (!$isSingleShopContext) {
@@ -79,12 +81,14 @@ class PositionsController extends PrestaShopAdminController
         $this->manageLegacyFlashes($request->query->getInt('conf'));
 
         $modules = [];
+        $moduleLogoPaths = [];
         foreach ($installedModules as $installedModule) {
             /** @var LegacyModule|false $module */
             $module = $moduleAdapter->getInstanceById($installedModule['id_module']);
             if ($module) {
                 // We want to be able to sort modules by display name
                 $modules[(int) $module->id] = $module;
+                $moduleLogoPaths[(int) $module->id] = $moduleRepository->getModule($module->name)->get('img');
             }
         }
 
@@ -153,6 +157,7 @@ class PositionsController extends PrestaShopAdminController
             'help_link' => $this->generateSidebarLink('AdminModulesPositions'),
             'hooks' => $hooks,
             'modules' => $modules,
+            'moduleLogoPaths' => $moduleLogoPaths,
             'isSingleShopContext' => $isSingleShopContext,
             'hookModuleV2Enabled' => $hookModuleV2Enabled,
         ]);
